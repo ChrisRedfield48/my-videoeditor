@@ -1,179 +1,101 @@
+<div align="center">
 
-<br />
+# 🎬 Kimu VideoEditor (Local Setup)
 
-<p align="center">
-  <img width="3200" height="804" alt="image" src="https://github.com/user-attachments/assets/08149933-609a-4556-8ab4-4ef2622a9c8f" />
+**Мощный open-source веб-редактор видео с AI-функциями, адаптированный для локального запуска.**
 
-</p>
-<p align="center">A friendly AI powered open-source alternative to Capcut, Canva.<br><samp>
-<a href="https://discord.gg/24Mt5DGcbx"> Discord</a> &nbsp; <a href="https://x.com/trykimu"> Twitter</a> &nbsp; <a href="https://trykimu.com"> Website</a></p>
-</samp>
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
-## ✨Features
+</div>
 
-<table>
-  <tr>
-    <td>
-      <img src="https://github.com/user-attachments/assets/c504e379-110d-4286-b2b7-7676aa186112" />
-      <h2 align="center">Advanced Multi‑Track Editing</h2>
-      <p align="center">Edit across unlimited tracks with precise control, snapping, and effortless layer management.</p>
-      <br>
-    </td>
-    <td>
-      <img width="1600" height="1000" alt="image" src="https://github.com/user-attachments/assets/94f05873-2f52-46ad-831a-55936f7999da" />
-      <h2 align="center">Real‑Time Preview</h2>
-      <p align="center">See every change instantly with low‑latency playback—no waiting, no rendering.</p>
-      <br>
-    </td>
-    <td>
-      <img src="https://github.com/user-attachments/assets/3f464355-d290-4586-aead-f9a1a3c58d63" />
-      <h2 align="center">Fast Export</h2>
-      <p align="center">Render high‑quality videos quickly and export exactly where you need them.</p>
-      <br>
-    </td>
-    </tr>
-    <tr>
-      <td>
-        <img src="https://github.com/user-attachments/assets/32920f51-4faf-442f-92fc-50d4809cd290" /><h2 align="center">Vibe AI Assistant</h2>
-        <p align="center">Describe your idea and let Kimu generate edits, timing, and layouts automatically.</p>
-        <br>
-      </td>
-    <td>
-      <img src="https://github.com/user-attachments/assets/0527e006-8438-466e-83ef-b05d7f98604b" />
-      <h2 align="center">Smart Media Library</h2>
-      <p align="center">Organize by type, tags, and sentiment—search and filter your assets in seconds.</p>
-      <br>
-    </td>
-    <td>
-      <img src="https://github.com/user-attachments/assets/dae66fb2-3e53-46ce-8fe0-10e62ac3cf70" />
-      <h2 align="center">Cloud‑Synced Projects</h2>
-      <p align="center">Keep timelines and assets in sync across devices so you can pick up right where you left off.</p>
-      <br>
-    </td>
-  </tr>
-</table>
-<p align="center">transitions, offline datastore, OAuth based security, change control
-<br> and much more...</p>
-</samp>
+---
 
-## 💻 Development
+## 📖 О проекте
 
-<strong> 🛠️ <ins>Local Development</ins></strong>
+Этот репозиторий — моя локальная сборка веб-редактора **Kimu** (форк проекта [trykimu/videoeditor](https://github.com/trykimu/videoeditor)).
 
-Only postgres runs in Docker. All three services run directly on your machine — Vite handles proxying so no nginx is needed.
+Оригинальный проект настроен для развертывания на Production-сервере. В ходе работы я адаптировал конфигурацию для стабильного запуска на локальной машине (macOS) через Docker, устранив ряд критических ошибок инициализации.
 
+## 🛠️ Что было исправлено и доработано
+
+Чтобы заставить проект работать локально, были внесены следующие изменения:
+
+1. **Исправлен баг PostgreSQL 18:**
+   * В `docker-compose.dev.yml` изменен путь монтирования тома (`/var/lib/postgresql` вместо `/var/lib/postgresql/data`). Официальный Docker-образ 18-й версии изменил структуру хранения данных, из-за чего контейнер базы данных бесконечно перезапускался.
+2. **Адаптирован конфиг Nginx для локальной разработки:**
+   * В `nginx.conf` убрана жесткая привязка к домену `trykimu.com`.
+   * Отключен блок HTTPS (443) с SSL-сертификатами Let's Encrypt, так как локально их нет.
+   * Весь трафик перенаправлен через HTTP (порт 80), настроен корректный прокси-пасс на контейнеры `frontend`, `fastapi` и `backend`.
+3. **Настроено окружение для работы с облаком:**
+   * Подключено хранилище Cloudflare R2 (для медиафайлов) и API-ключ Google Gemini (для AI-функций).
+
+## 🚀 Быстрый старт (Локальный запуск)
+
+### Требования
+* Установленный [Docker](https://www.docker.com/products/docker-desktop/) и Docker Compose.
+* Свободные порты: `80`, `5432`, `6379`.
+
+### Инструкция по запуску
+
+**1. Клонируйте репозиторий:**
 ```bash
-# Install dependencies
-pnpm i
-cd backend && uv sync && cd ..
-
-# 1. Start postgres
-docker compose -f docker-compose.dev.yml up -d
-
-# 2. Start FastAPI  (terminal 1)
-cd backend && uv run uvicorn main:app --reload --port 3000
-
-# 3. Start renderer  (terminal 2)
-pnpm dlx tsx app/videorender/videorender.ts
-
-# 4. Start frontend  (terminal 3)
-pnpm dev
+git clone https://github.com/ВАШ_НИК/ВАШ_РЕПОЗИТОРИЙ.git
+cd ВАШ_РЕПОЗИТОРИЙ
 ```
 
-Open **`http://localhost:5173`**. The Vite dev server proxies requests transparently:
-
-<samp>
-
-- `/backend/*` → FastAPI at `:3000`
-- `/renderer/*` → Renderer at `:8000`
-- `/*` → React Router SSR (Vite)
-
-</samp>
-
-`Requirements`
-
-<samp>
-  
-- Node.js 20+
-- Python 3.12+
-- pnpm
-- Docker (for postgres only)
-
-</samp>
-
-## 🚀 Production
-
-Everything runs in Docker behind nginx. One command:
-
-```bash
-docker compose up -d
-```
-
-**With Custom Domain:**
-
-```bash
-PROD_DOMAIN=yourdomain.com docker compose up -d
-```
-
-nginx routes:
-
-<samp>
-
-- `/backend/*` → FastAPI
-- `/renderer/*` → Renderer (video rendering)
-- `/*` → Frontend (React Router SSR)
-
-</samp>
-
-**Ports:**
-
-- HTTP: `80` (redirects to HTTPS)
-- HTTPS: `443`
-
-## ⚙️ Environment Configuration
-
-Copy `.env.example` to `.env` and fill in your values:
-
+**2. Настройте переменные окружения:**
+Создайте файл `.env` в корне проекта (он скрыт от Git в целях безопасности) и заполните его:
 ```env
-# Local/Docker Postgres (dev or self-hosted prod):
-DATABASE_URL=postgresql://videoeditor:videoeditor@localhost:5432/videoeditor
+# База данных и Redis
+POSTGRES_PASSWORD=videoeditor
+DATABASE_URL=postgresql://videoeditor:videoeditor@postgres:5432/videoeditor
+REDIS_URL=redis://redis:6379
 
-# — OR — Supabase Session Pooler (cloud):
-DATABASE_URL=postgresql://postgres.REF:password@aws-0-REGION.pooler.supabase.com:5432/postgres
-DATABASE_SSL=true   # required for Supabase; omit for local/Docker Postgres
+# Секреты (сгенерируйте: openssl rand -base64 32)
+BETTER_AUTH_SECRET=ваш_сгенерированный_секрет
+BETTER_AUTH_URL=http://localhost
 
-# BetterAuth
-BETTER_AUTH_SECRET=   # generate with: openssl rand -hex 32
-BETTER_AUTH_URL=https://yourdomain.com   # http://localhost:5173 for dev
+# Cloudflare R2 (для хранения видео)
+R2_ACCOUNT_ID=ваш_account_id
+R2_ACCESS_KEY_ID=ваш_access_key
+R2_SECRET_ACCESS_KEY=ваш_secret_key
+R2_ASSETS_BUCKET=kimu-assets
+R2_RENDERS_BUCKET=kimu-renders
 
-# Google OAuth
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-# AI Features (optional)
-GEMINI_API_KEY=your_gemini_api_key
+# Google Gemini AI
+GEMINI_API_KEY=ваш_api_ключ
 ```
 
-**Environment Variables Explained:**
+**3. Запустите контейнеры:**
+*(Обязательно используйте оба файла `-f`, чтобы подтянулась база данных из dev-конфига)*
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+```
 
-- `DATABASE_URL`: PostgreSQL connection string. Use the local Docker URL for dev/self-hosted prod, or the Supabase Session Pooler URL for cloud.
-- `DATABASE_SSL`: Set to `"true"` when connecting to Supabase or any remote DB that requires SSL. Leave unset for local/Docker Postgres.
-- `BETTER_AUTH_SECRET`: Random secret used to sign sessions — generate with `openssl rand -hex 32`.
-- `BETTER_AUTH_URL`: The public URL of the app. Used by BetterAuth for OAuth callbacks.
-- `GOOGLE_CLIENT_ID/SECRET`: Google OAuth credentials — register at [console.cloud.google.com](https://console.cloud.google.com).
-- `GEMINI_API_KEY`: Required for AI-powered video editing features.
+**4. Откройте приложение:**
+Перейдите в браузере по адресу: **👉 [http://localhost](http://localhost)**
 
-<br>
+> 💡 **Примечание:** Первый запуск может занять несколько минут, пока Docker скачает образы (Postgres, Redis, Nginx) и соберет Python/Node.js зависимости.
 
-## 📃TODO
+## 🏗️ Архитектура проекта
 
-<samp> We have a lot of work! For starters, we plan to integrate all Remotion APIs. I'll add a proper roadmap soon. Join the [Discord Server](https://discord.com/invite/GSknuxubZK) for updates and support. </samp>
+Проект состоит из 6 микросервисов, общающихся внутри Docker-сети:
 
-## ❤️Contribution
+* **`frontend`** — Клиентская часть (React + Vite), работает на порту 3000.
+* **`fastapi`** — Основной бэкенд на Python, обрабатывает логику приложения и API-запросы (порт 3000).
+* **`backend`** — Сервис рендеринга видео на Node.js + Remotion (порт 8000).
+* **`postgres`** — Реляционная база данных для хранения пользователей и проектов.
+* **`redis`** — Кэш и брокер сообщений для очередей рендеринга.
+* **`nginx`** — Reverse-proxy, который принимает запросы на порту 80 и распределяет их между остальными сервисами.
 
-<samp> We would love your contributions! ❤️ Check the [contribution guide](CONTRIBUTING.md). </samp>
+## 🖼️ Скриншоты
 
-## 📜License
+![Интерфейс редактора](interface.png)
 
-<samp> This project is licensed under a dual-license. Refer to [LICENSE](LICENSE.md) for details. The [Remotion license](https://github.com/remotion-dev/remotion/blob/main/LICENSE.md) also applies to the relevant parts of the project. </samp>
-
+---
+<div align="center">
+  <i>Оригинальный проект: <a href="https://github.com/trykimu/videoeditor">trykimu/videoeditor</a></i>
+</div>
